@@ -78,7 +78,7 @@ public class SimpleFontPack extends JFrame {
 	
 	void setupGUI() {
 		Table table = new Table();
-		table.top().left().pad(10);
+		table.top().left();
 		
 		fontList = new JList(new FontItem[] { new FontItem("Arial") });
 		
@@ -151,13 +151,26 @@ public class SimpleFontPack extends JFrame {
 		rightTable.addCell(settingsPanel).expand().fill();
 		
 		table.addCell(topTable).left().top().expandX().fillX().colspan(2).row().padTop(15);
-		table.addCell(new JSeparator()).expandX().fillX().colspan(2).padTop(5).padBottom(5).row();
+//		table.addCell(new JSeparator()).expandX().fillX().colspan(2).padTop(5).padBottom(5).row();
 		
 		table.addCell(leftTable).left().top().padRight(10).expand().fill();
 		table.addCell(rightTable).left().top().expand().fill().minWidth(200);
 		
-		setContentPane(table);
 		
+		Table root = new Table();
+		
+		Table output = new Table();
+		
+		JLabel label = new JLabel("test");
+		label.setBackground(Color.BLUE);
+		label.setOpaque(true);
+		
+		root.addCell(table).expand().fill();
+		
+//		table.row();
+//		table.addCell(output).size(256, 256);
+		
+		setContentPane(root);
 	}
 	
 	int nextPOT(int i) {
