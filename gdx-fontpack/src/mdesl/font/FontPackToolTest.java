@@ -1,5 +1,6 @@
 package mdesl.font;
 
+import java.io.File;
 import java.io.IOException;
 
 import mdesl.font.FontPackTool.FontItem;
@@ -7,6 +8,7 @@ import mdesl.font.FontPackTool.FontPackDocument;
 import mdesl.font.FontPackTool.Settings;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
 
@@ -75,11 +77,8 @@ public class FontPackToolTest {
 		item.settings.glowBlurRadius = 1;
 		item.settings.glowBlurIterations = 1;
 		
-		//the shadow color, black for now
-		item.settings.glowRed = 0f;
-		item.settings.glowGreen = 0f;
-		item.settings.glowBlue = 0f;
-		item.settings.glowAlpha = 0.75f;
+		//the shadow color, we'll use semi-transparent black
+		item.settings.glowColor = new Color(0f, 0f, 0f, 0.75f);
 
 		/////////// Padding
 		//add a bit of right and bottom padding to account for blurred shadow

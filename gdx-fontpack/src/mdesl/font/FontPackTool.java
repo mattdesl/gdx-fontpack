@@ -47,10 +47,7 @@ public class FontPackTool {
 		public int glowBlurRadius;
 		public int glowBlurIterations;
 		
-		public float glowRed = 0f;
-		public float glowBlue = 0f;
-		public float glowGreen = 0f;
-		public float glowAlpha = 1f;
+		public Color glowColor = new Color(0f, 0f, 0f, 1f);
 		
 		public String characters = DEFAULT_CHARS;
 	}
@@ -167,7 +164,7 @@ public class FontPackTool {
 		}
 		
 		if (s.glow) {
-			Color col = new Color(s.glowRed, s.glowGreen, s.glowBlue, s.glowAlpha);
+			Color col = new Color(s.glowColor);
 			gen.addFilter( new FreeTypeShadowFilter(col, s.glowOffsetX, s.glowOffsetY,
 										s.glowBlurRadius, s.glowBlurIterations, 0) );
 		} 	
