@@ -41,26 +41,6 @@ public class FontPackToolTest {
 		//spacing used for PixmapPacker
 		doc.spacing = 1;
 		
-		//default character set
-		doc.defaultSettings.characters = FontPackTool.ABRIDGED_CHARS;
-		
-		//enable drop shadow, i.e. outer glow
-		doc.defaultSettings.glow = true;
-		
-		//shadow offset
-		doc.defaultSettings.glowOffsetX = 1;
-		doc.defaultSettings.glowOffsetY = 1;
-		
-		//blur strength.. leave either at zero for no blur
-		doc.defaultSettings.glowBlurRadius = 1;
-		doc.defaultSettings.glowBlurIterations = 1;
-		
-		//add a bit of right and bottom padding to account for blurred shadow
-		doc.defaultSettings.paddingTop = 0;
-		doc.defaultSettings.paddingLeft = 0;
-		doc.defaultSettings.paddingRight = 2;
-		doc.defaultSettings.paddingBottom = 2;
-		
 		//the size(s) of fonts we want to pack into the atlas
 		doc.defaultSettings.sizes = new int[] { 12, 16, 18, 24, 32 };
 		
@@ -74,15 +54,44 @@ public class FontPackToolTest {
 	}
 	
 	private static FontItem font(String key, String fontFace, String fontFile, String characters) {
-		//each FontItem can optionally have its own settings
+		//the "key" that will make up the resulting file name, and the TTF file to read from
 		FontItem item = new FontItem(key, fontFile);
+		
+		//if the settings for FontItem is null, then the defaultSettings will be used from our doc
+		
+		//Here we will use individual settings to define the character set for each language
 		item.settings = new Settings();
 		item.settings.characters = characters;
+		
+		/////////// Drop shadow
+		//enable the shadow filter
+		item.settings.glow = true;
+		
+		//shadow offset
+		item.settings.glowOffsetX = 1;
+		item.settings.glowOffsetY = 1;
+		
+		//blur strength.. leave either at zero for no blur
+		item.settings.glowBlurRadius = 1;
+		item.settings.glowBlurIterations = 1;
+		
+		//the shadow color, black for now
+		item.settings.glowRed = 0f;
+		item.settings.glowGreen = 0f;
+		item.settings.glowBlue = 0f;
+		item.settings.glowAlpha = 0.75f;
+
+		/////////// Padding
+		//add a bit of right and bottom padding to account for blurred shadow
+		item.settings.paddingTop = 0;
+		item.settings.paddingLeft = 0;
+		item.settings.paddingRight = 3;
+		item.settings.paddingBottom = 3;
 		
 		//FontItem "name" parameter is optional; this can be used to embed the font face (e.g. "Helvetica Neue")
 		//into the BMFont file. If it's null or an empty string, then the key will be used in the file instead
 		item.name = fontFace;
-		
+			
 		//The resulting BMFont file will have the filename format "key-N.fnt" where N is the size of that font 
 		return item;
 	}
