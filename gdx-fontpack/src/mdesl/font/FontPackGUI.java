@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,13 +46,11 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+import mdesl.font.FileUtil.BrowseType;
+import mdesl.font.FileUtil.DefaultDir;
+import mdesl.font.FileUtil.FileType;
 import mdesl.font.FontPackTool.FontItem;
 import mdesl.font.FontPackTool.FontPackDocument;
-import mdesl.font.old.FileUtil;
-import mdesl.font.old.FileUtil.BrowseType;
-import mdesl.font.old.FileUtil.DefaultDir;
-import mdesl.font.old.FileUtil.FileType;
-import mdesl.font.old.SimpleFontPack;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -93,7 +90,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	JCheckBox shadowCheckbox;
 	JButton shadowButton;
 	
-	Preferences prefs = Preferences.userNodeForPackage(SimpleFontPack.class);
+	Preferences prefs = Preferences.userNodeForPackage(FontPackGUI.class);
 	FileUtil fileChooser;
 	
 	Table listTable = new Table();
@@ -166,9 +163,9 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		
 		
 
-		iconWarn = new ImageIcon(SimpleFontPack.class.getResource("/data/icon_alert.gif"));
-		iconErr = new ImageIcon(SimpleFontPack.class.getResource("/data/icon_error.gif"));
-		iconInfo = new ImageIcon(SimpleFontPack.class.getResource("/data/icon_info.gif"));
+		iconWarn = new ImageIcon(FontPackGUI.class.getResource("/data/icon_alert.gif"));
+		iconErr = new ImageIcon(FontPackGUI.class.getResource("/data/icon_error.gif"));
+		iconInfo = new ImageIcon(FontPackGUI.class.getResource("/data/icon_info.gif"));
 		
 		
 		statusBar = new JLabel("Status");
@@ -440,7 +437,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 
 	JButton iconButton(String resourcePath) {
 		JButton btn = new JButton();
-		btn.setIcon(new ImageIcon(SimpleFontPack.class.getResource(resourcePath)));
+		btn.setIcon(new ImageIcon(FontPackGUI.class.getResource(resourcePath)));
 		btn.setContentAreaFilled(false);
 		Dimension d = new Dimension(32, 32);
 		btn.setRequestFocusEnabled(false);

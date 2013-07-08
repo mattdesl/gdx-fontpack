@@ -1,0 +1,15 @@
+info face="Garuda" size=18 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=2 padding=0,0,0,0 spacing=0,0
+common lineHeight=34 base=23 scaleW=512 scaleH=512 pages=1 packed=0 alphaChnl=0 redChnl=0 greenChnl=0 blueChnl=0
+page id=0 file="fonts.png"
+chars count=10
+char id=32   x=0    y=0    width=0    height=0    xoffset=0    yoffset=0    xadvance=6    page=0    chnl=0
+char id=63   x=280  y=62   width=8    height=13   xoffset=1    yoffset=10   xadvance=10   page=0    chnl=0
+char id=3603 x=253  y=62   width=15   height=12   xoffset=0    yoffset=12   xadvance=15   page=0    chnl=0
+char id=3605 x=290  y=62   width=9    height=11   xoffset=1    yoffset=12   xadvance=12   page=0    chnl=0
+char id=3618 x=270  y=62   width=8    height=11   xoffset=2    yoffset=12   xadvance=11   page=0    chnl=0
+char id=3619 x=242  y=62   width=9    height=11   xoffset=0    yoffset=12   xadvance=9    page=0    chnl=0
+char id=3623 x=45   y=496  width=9    height=11   xoffset=-1   yoffset=12   xadvance=10   page=0    chnl=0
+char id=3640 x=28   y=250  width=4    height=5    xoffset=-5   yoffset=24   xadvance=0    page=0    chnl=0
+char id=3660 x=301  y=62   width=6    height=6    xoffset=-5   yoffset=1    xadvance=0    page=0    chnl=0
+char id=65533x=75   y=321  width=10   height=23   xoffset=2    yoffset=0    xadvance=14   page=0    chnl=0
+kernings count=0

@@ -23,10 +23,10 @@ public class FontPackToolTest {
 		//the output directory for our bitmap fonts and images
 		FileHandle outDir = new FileHandle("out");
 		
-		//the name of the image(s) that will be generated from the glyphs
+		//the file name of the image(s) that will be generated from the glyphs
 		String imageOutName = "fonts";
 		
-		//right now the tool returns a PixmapPacker; this is likely to change in future releases
+		//right now the tool returns a PixmapPacker; this is likely to change in future releases...
 		PixmapPacker packer = FontPackTool.pack(doc, outDir, imageOutName);
 		packer.dispose();
 	}
