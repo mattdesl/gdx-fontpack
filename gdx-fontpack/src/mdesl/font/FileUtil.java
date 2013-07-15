@@ -50,6 +50,7 @@ public class FileUtil {
 		this.prefs = prefs;
 		this.parent = parent;
 		this.useJFileChooser = useJFileChooser;
+		System.setProperty("apple.awt.fileDialogForDirectories", "true");
 	}
 	
 	
@@ -88,7 +89,7 @@ public class FileUtil {
 	}
 	
 	
-	public File browse(BrowseType browseType, FileType fileType, DefaultDir defaultDir, boolean dirsOnly) {
+	public File browse(BrowseType browseType, FileType fileType, DefaultDir defaultDir, boolean dirsOnly, String startingDir) {
 		init();
 		
 		try {
@@ -97,7 +98,25 @@ public class FileUtil {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		String lastDir = prefs.get("file."+browseType.name(), null);
+
+		File selFile = null;
+		if (startingDir!=null) {
+			File f = new File(startingDir);
+			
+			if (f.isFile()) //
+				startingDir = f.getParent();
+			else {
+				if (!f.exists())
+					f.mkdir();
+				
+				if (dirsOnly) { //make parent dir the starting dir, if it exists
+					startingDir = f.getParent();
+					selFile = f;
+				}
+			}
+		}
+		
+		String lastDir = startingDir!=null && startingDir.length()!=0 ? startingDir : prefs.get("file."+browseType.name(), null);
 		if (lastDir==null) {
 			if (defaultDir==DefaultDir.Fonts) {
 				lastDir = getBestFontPath(); 
@@ -118,6 +137,9 @@ public class FileUtil {
 			
 			jFileChooser.setCurrentDirectory(new File(lastDir));
 			
+			if (selFile!=null)
+				jFileChooser.setSelectedFile(selFile);
+			
 			jFileChooser.setFileSelectionMode(dirsOnly ? JFileChooser.DIRECTORIES_ONLY : JFileChooser.FILES_ONLY);
 			int a = browseType==BrowseType.Open ? jFileChooser.showOpenDialog(parent) : jFileChooser.showSaveDialog(parent);
 			if (a==JFileChooser.APPROVE_OPTION) {
@@ -126,6 +148,7 @@ public class FileUtil {
 			}
 		} else {
 			System.setProperty("apple.awt.fileDialogForDirectories", Boolean.toString(dirsOnly));
+			
 			fileDialog.setFilenameFilter(fileType.awtFilter);
 			fileDialog.setDirectory(lastDir);
 			fileDialog.setFile(lastDirFileName);
@@ -154,10 +177,6 @@ public class FileUtil {
 		return file;
 	}
 	
-	
-	
-	
-
 	static final FilenameFilter AWT_FREETYPE = new FilenameFilter() {
 		
 		@Override

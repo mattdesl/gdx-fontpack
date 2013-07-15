@@ -1,20 +1,63 @@
 package mdesl.font;
 
-import java.io.File;
 import java.io.IOException;
 
 import mdesl.font.FontPackTool.FontItem;
+import mdesl.font.FontPackTool.FontPack;
 import mdesl.font.FontPackTool.FontPackDocument;
 import mdesl.font.FontPackTool.Settings;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.PixmapPacker;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
 
 public class FontPackToolTest {
 	
+	
+	static class Level {
+		
+		private boolean visible = true;
+		private String name;
+		private Array<Layer> layers = new Array<Layer>();
+	}
+
+	static class Layer {
+		
+		private String name;
+		private boolean visible = true;
+		private Array<Item> items = new Array<Item>();
+		private Vector2 scrollSpeed = new Vector2(1, 1);
+	}
+
+	static class Item {
+		// more stuff here
+	}
+	
 	public static void main(String[] args) throws IOException {
+		Json json = new Json();
+		
+		Level level = new Level();
+		level.name = "MyLevel";
+		
+		Layer layer = new Layer();
+		layer.name = "MyLayer";
+		level.layers.add(layer);
+		
+		//pretty print for debugging...
+		String out = json.prettyPrint(level);
+		System.out.println(out);
+		
+		//Write to file...
+		//json.toJson(level, Gdx.files.local("blah.json"), Level.class);
+		
+		//Read from file...
+		//Level level = json.fromJson(Level.class, Gdx.files.local("blah.json"));
+		
+		System.exit(0);
+		
 		//necessary to use Pixmap and friends
 		new SharedLibraryLoader("libs/gdx-natives.jar").load("gdx");
 		new SharedLibraryLoader("libs/gdx-freetype-natives.jar").load("gdx-freetype");
@@ -29,8 +72,8 @@ public class FontPackToolTest {
 		String imageOutName = "fonts";
 		
 		//right now the tool returns a PixmapPacker; this is likely to change in future releases...
-		PixmapPacker packer = FontPackTool.pack(doc, outDir, imageOutName);
-		packer.dispose();
+		FontPack pack = FontPackTool.pack(doc, outDir, imageOutName);
+		pack.atlas.dispose();
 	}
 	
 	public static FontPackDocument createDocument() {

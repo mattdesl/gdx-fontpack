@@ -46,7 +46,6 @@ public class FontPackTool {
 		public int glowOffsetY;
 		public int glowBlurRadius;
 		public int glowBlurIterations;
-		
 		public Color glowColor = new Color(0f, 0f, 0f, 1f);
 		
 		public String characters = DEFAULT_CHARS;
@@ -83,6 +82,17 @@ public class FontPackTool {
 		public int spacing = 2;
 		public Settings defaultSettings = new Settings();
 		public Array<FontItem> fonts = new Array<FontItem>();
+	}
+	
+	public static class FontData {
+		public BitmapFontData data;
+		public Settings settings;
+		public FontItem item;
+	}
+	
+	public static class FontPack {
+		public PixmapPacker atlas;
+		public ObjectMap<String, IntMap<FontData>> dataMap;
 	}
 	
 	private static Json json = new Json();
@@ -150,8 +160,8 @@ public class FontPackTool {
 			System.exit(0);
 		}
 		
-		PixmapPacker packer = pack(doc, new FileHandle(outDir), outName);
-		packer.dispose();
+		FontPack packer = pack(doc, new FileHandle(outDir), outName);
+		packer.atlas.dispose();
 	}
 	
 	static void setupFilters(FreeTypeFontGenerator gen, Settings s) {
@@ -170,14 +180,7 @@ public class FontPackTool {
 		} 	
 	}
 	
-	
-	static class FontData {
-		BitmapFontData data;
-		Settings settings;
-		FontItem item;
-	}
-	
-	public static PixmapPacker pack(FontPackDocument doc, FileHandle outDir, String imageOutName) throws IOException {
+	public static FontPack pack(FontPackDocument doc, FileHandle outDir, String imageOutName) throws IOException {
 		PixmapPacker packer = new PixmapPacker(doc.atlasWidth, doc.atlasHeight, Format.RGBA8888, doc.spacing, false);
 		
 		Settings defSettings = doc.defaultSettings;
@@ -233,7 +236,7 @@ public class FontPackTool {
 				if (oldMap!=null) {
 					FontData oldData = oldMap.get(sizes[i]);
 					if (oldData!=null) 
-						throw new IOException("duplicate font by key '"+font.key+"'");
+						throw new IOException("duplicate font with the key '"+font.key+"'");
 				}
 				
 				//generate the data, packing it into our atlas
@@ -261,6 +264,10 @@ public class FontPackTool {
 			gen.dispose();
 		}
 		
+		FontPack pack = new FontPack();
+		pack.atlas = packer;
+		pack.dataMap = dataMap;
+		
 		//after we've packed all the glyphs... save our pixmaps
 		Array<Page> pages = packer.getPages();
 		
@@ -269,7 +276,7 @@ public class FontPackTool {
 		System.out.println();
 		
 		if (outDir==null)
-			return packer;
+			return pack;
 			
 		//write the PNGs and get the returned references
 		String[] refs = BitmapFontWriter.writePixmaps(pages, outDir, imageOutName);
@@ -309,7 +316,7 @@ public class FontPackTool {
 			}
 		}
 		
-		return packer;
+		return pack;
 	}
 	
 	static void tickProgress() {

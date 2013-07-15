@@ -9,5 +9,8 @@
 	<classpathentry kind="lib" path="libs/gdx.jar"/>
 	<classpathentry kind="lib" path="libs/gdx-freetype-sources.jar"/>
 	<classpathentry kind="lib" path="libs/gdx-sources.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl-natives.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl-sources.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
