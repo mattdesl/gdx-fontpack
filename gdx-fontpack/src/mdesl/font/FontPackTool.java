@@ -339,6 +339,16 @@ public class FontPackTool {
 			tickProgress();
 			return pixmap;
 		}
+
+		@Override
+		public int left () {
+			return 0;
+		}
+
+		@Override
+		public int top () {
+			return 0;
+		}
 		
 	}
 }
