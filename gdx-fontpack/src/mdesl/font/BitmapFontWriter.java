@@ -1,7 +1,5 @@
 package mdesl.font;
 
-import java.util.Arrays;
-
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
@@ -18,10 +16,31 @@ import com.badlogic.gdx.utils.Array;
  */
 public class BitmapFontWriter {
 
-	/** The Padding parameter for FontInfo. */
-	static class Padding {
-		public int up, down, left, right;
+	/** The output format. */
+	public static enum OutputFormat {
 		
+		/** AngelCodeFont text format */
+		Text,
+		/** AngelCodeFont XML format */
+		XML;
+	}
+	
+	private static OutputFormat format = OutputFormat.Text;
+	
+	public static void setOutputFormat(OutputFormat fmt) {
+		if (fmt==null)
+			throw new NullPointerException("format cannot be null");
+		format = fmt;
+	}
+	
+	public static OutputFormat getOutputFormat() {
+		return format;
+	}
+	
+	/** The Padding parameter for FontInfo. */
+	public static class Padding {
+		public int up, down, left, right;
+
 		public Padding() {
 		}
 		
@@ -34,13 +53,13 @@ public class BitmapFontWriter {
 	}
 
 	/** The spacing parameter for FontInfo. */
-	static class Spacing {
+	public static class Spacing {
 		public int horizontal, vertical;
 	}
 
 	/** The font "info" line; this will be ignored by LibGDX's BitmapFont reader,
 	 * but useful for clean and organized output. */
-	static class FontInfo {
+	public static class FontInfo {
 		/** Face name */
 		public String face;
 		/** Font size (pt) */
@@ -74,6 +93,12 @@ public class BitmapFontWriter {
 		}
 	}
 	
+	private static String quote(Object params) {
+		if (BitmapFontWriter.getOutputFormat() == OutputFormat.XML)
+			return "\"" + params + "\"";
+		else
+			return params.toString();
+	}
 	
 	/**
 	 * Writes the given BitmapFontData to a file, using the specified <tt>pageRefs</tt> strings as the 
@@ -105,48 +130,80 @@ public class BitmapFontWriter {
 		int pages = pageRefs.length;
 		int packed = 0;
 		int base = (int)((fontData.capHeight) + (fontData.flipped ? -fontData.ascent : fontData.ascent));
+		OutputFormat fmt = BitmapFontWriter.getOutputFormat();
+		boolean xml = fmt == OutputFormat.XML;	
 		
 		StringBuilder buf = new StringBuilder();
+		
+		if (xml) {
+			buf.append("<font>\n");
+		}
+		String xmlOpen = xml ? "\t<" : "";
+		String xmlCloseSelf = xml ? "/>" : "";
+		String xmlTab = xml ? "\t" : "";
+		
+		String xmlQuote = xml ? "\"" : "";
+		String alphaChnlParams =
+						xml ? " alphaChnl=\"0\" redChnl=\"0\" greenChnl=\"0\" blueChnl=\"0\""
+							 : " alphaChnl=0 redChnl=0 greenChnl=0 blueChnl=0"; 
 		//INFO LINE
-		buf.append("info face=\"")
+		
+		buf.append(xmlOpen)
+			.append("info face=\"")
 			.append(info.face==null ? "" : info.face.replaceAll("\"", "'"))
-			.append("\" size=").append(info.size)
-			.append(" bold=").append(info.bold ? 1 : 0)
-			.append(" italic=").append(info.italic ? 1 : 0)
+			.append("\" size=").append( quote(info.size) )
+			.append(" bold=").append( quote(info.bold ? 1 : 0) )
+			.append(" italic=").append( quote(info.italic ? 1 : 0) )
 			.append(" charset=\"").append(info.charset==null ? "" : info.charset)
-			.append("\" unicode=").append(info.unicode ? 1 : 0)
-			.append(" stretchH=").append(info.stretchH)
-			.append(" smooth=").append(info.smooth ? 1 : 0)
-			.append(" aa=").append(info.aa)
+			.append("\" unicode=").append( quote(info.unicode ? 1 : 0) )
+			.append(" stretchH=").append( quote(info.stretchH) )
+			.append(" smooth=").append( quote(info.smooth ? 1 : 0) )
+			.append(" aa=").append( quote(info.aa) )
 			.append(" padding=")
+				.append(xmlQuote)
 				.append(info.padding.up).append(",")
 				.append(info.padding.down).append(",")
 				.append(info.padding.left).append(",")
 				.append(info.padding.right)
+				.append(xmlQuote)
 			.append(" spacing=")
+				.append(xmlQuote)
 				.append(info.spacing.horizontal).append(",")
 				.append(info.spacing.vertical)
+				.append(xmlQuote)
+			.append(xmlCloseSelf)
 			.append("\n");
 		
 		//COMMON line
-		buf.append("common lineHeight=")
-			.append(lineHeight)
-			.append(" base=").append(base)
-			.append(" scaleW=").append(scaleW)
-			.append(" scaleH=").append(scaleH)
-			.append(" pages=").append(pages)
-			.append(" packed=").append(packed)
-			.append(" alphaChnl=0 redChnl=0 greenChnl=0 blueChnl=0")
+		buf.append(xmlOpen)
+			.append("common lineHeight=").append( quote(lineHeight) )
+			.append(" base=").append( quote(base) )
+			.append(" scaleW=").append( quote(scaleW) )
+			.append(" scaleH=").append( quote(scaleH) )
+			.append(" pages=").append( quote(pages) )
+			.append(" packed=").append( quote(packed) )
+			.append(alphaChnlParams)
+			.append(xmlCloseSelf)
 			.append("\n");
+		
+		if (xml)
+			buf.append("\t<pages>\n");
 		
 		//PAGES
 		for (int i=0; i<pageRefs.length; i++) {
-			buf.append("page id=")
-				.append(i)
+			buf.append(xmlTab)
+				.append(xmlOpen)
+				.append("page id=")
+				.append( quote(i) )
 				.append(" file=\"")
 				.append(pageRefs[i])
-				.append("\"\n");
+				.append("\"")
+				.append(xmlCloseSelf)
+				.append("\n");
 		}
+		
+		if (xml)
+			buf.append("\t</pages>\n");
 		
 		//CHARS
 		Array<Glyph> glyphs = new Array<Glyph>(256);
@@ -161,22 +218,28 @@ public class BitmapFontWriter {
 			}
 		}
 		
-		buf.append("chars count=").append(glyphs.size).append("\n");
+		buf.append(xmlOpen)
+			.append("chars count=").append(glyphs.size)
+			.append(xmlCloseSelf)
+			.append("\n");
 		
 		//CHAR definitions
 		for (int i=0; i<glyphs.size; i++) {
 			Glyph g = glyphs.get(i);
-			buf.append("char id=")
-				.append(String.format("%-5s", g.id))
-				.append("x=").append(String.format("%-5s", g.srcX))
-				.append("y=").append(String.format("%-5s", g.srcY))
-				.append("width=").append(String.format("%-5s", g.width))
-				.append("height=").append(String.format("%-5s", g.height))
-				.append("xoffset=").append(String.format("%-5s", g.xoffset))
-				.append("yoffset=").append(String.format("%-5s", fontData.flipped ? g.yoffset : -(g.height + g.yoffset) ))
-				.append("xadvance=").append(String.format("%-5s", g.xadvance))
-				.append("page=").append(String.format("%-5s", g.page))
-				.append("chnl=0")
+			buf.append(xmlTab)
+				.append(xmlOpen)
+				.append("char id=")
+				.append(quote( String.format("%-5s", g.id) ))
+				.append("x=").append(quote( String.format("%-5s", g.srcX)) )
+				.append("y=").append(quote( String.format("%-5s", g.srcY)) )
+				.append("width=").append(quote( String.format("%-5s", g.width)) )
+				.append("height=").append(quote( String.format("%-5s", g.height)) )
+				.append("xoffset=").append(quote( String.format("%-5s", g.xoffset)) )
+				.append("yoffset=").append(quote( String.format("%-5s", fontData.flipped ? g.yoffset : -(g.height + g.yoffset) )) )
+				.append("xadvance=").append(quote( String.format("%-5s", g.xadvance)) )
+				.append("page=").append(quote( String.format("%-5s", g.page)) )
+				.append("chnl=").append(quote(0))
+				.append(xmlCloseSelf)
 				.append("\n");
 		}
 		
@@ -190,16 +253,22 @@ public class BitmapFontWriter {
 				int kern = first.getKerning((char)second.id);
 				if (kern!=0) {
 					kernCount++;
-					kernBuf.append("kerning first=").append(first.id)
-							 .append(" second=").append(second.id)
-							 .append(" amount=").append(kern)
-							 .append("\n");
+					kernBuf.append(xmlTab)
+							.append(xmlOpen)
+							.append("kerning first=").append(quote(first.id))
+							.append(" second=").append(quote(second.id))
+							.append(" amount=").append(quote(kern))
+							.append(xmlCloseSelf)
+							.append("\n");
 				}
 			}
 		}
 
 		//KERN info
-		buf.append("kernings count=").append(kernCount).append("\n");
+		buf.append(xmlOpen)
+			.append("kernings count=").append(quote(kernCount))
+			.append(xmlCloseSelf)
+			.append("\n");
 		buf.append(kernBuf);
 		
 		String charset = info.charset;
@@ -234,7 +303,7 @@ public class BitmapFontWriter {
 		//write the font data
 		writeFont(fontData, pageRefs, outFntFile, info, pages[0].getWidth(), pages[0].getHeight());
 	}
-	
+
 	/**
 	 * A utility method to write the given array of pixmaps to the given output directory, with the specified
 	 * file name. If the pages array is of length 1, then the resulting file ref will look like: "fileName.png".
