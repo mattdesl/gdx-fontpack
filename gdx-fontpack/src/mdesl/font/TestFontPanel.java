@@ -1,13 +1,12 @@
 package mdesl.font;
 
-import javax.swing.SwingUtilities;
-
 import mdesl.font.FontPackGUI.BGStyle;
 import mdesl.font.FontPackTool.FontData;
 import mdesl.font.FontPackTool.FontPack;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -17,8 +16,14 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker.Page;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap;
+import com.esotericsoftware.tablelayout.Toolkit;
 
 public class TestFontPanel implements ApplicationListener {
 	
@@ -29,6 +34,13 @@ public class TestFontPanel implements ApplicationListener {
 	OrthographicCamera cam;
 	BGStyle background;
 	FontPackGUI gui;
+	
+	Stage stage;
+	TextField input;
+	Label labelInput, labelScale;
+	
+	Skin skin;
+	
 	
 	public TestFontPanel(BGStyle background, FontPackGUI gui) {
 		this.background = background;
@@ -53,6 +65,20 @@ public class TestFontPanel implements ApplicationListener {
 	public void create () {
 		cam = new OrthographicCamera();
 		batch = new SpriteBatch();
+		
+		stage = new Stage();
+		skin = new Skin(Gdx.files.internal("data/uiskin.json"));
+		input = new TextField("", skin);
+		
+		labelInput = new Label("Input:", skin);
+		labelInput.setColor(Color.WHITE);
+		
+		labelInput.setPosition(5, Gdx.graphics.getHeight() - labelInput.getHeight() - 5);
+		input.setPosition(labelInput.getX()+labelInput.getWidth()+10, Gdx.graphics.getHeight() - input.getHeight() - 5);
+		
+		Gdx.input.setInputProcessor(stage);
+		stage.addActor(labelInput);
+		stage.addActor(input);
 		
 	}
 	
@@ -144,6 +170,11 @@ public class TestFontPanel implements ApplicationListener {
 			batch.end();
 		}
 		
+		input.setY(Gdx.graphics.getHeight() - input.getHeight() - 5);
+		labelInput.setY(Gdx.graphics.getHeight() - input.getHeight() - 5);
+		
+		stage.act();
+		stage.draw();
 	}
 
 	@Override
@@ -156,5 +187,6 @@ public class TestFontPanel implements ApplicationListener {
 	public void resize (int w, int h) {
 		cam.setToOrtho(false,  w,  h);
 		batch.setProjectionMatrix(cam.combined);
+		stage.setViewport(w, h, false);
 	}
 }

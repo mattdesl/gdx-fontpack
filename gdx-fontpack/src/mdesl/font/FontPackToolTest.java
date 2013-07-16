@@ -2,6 +2,7 @@ package mdesl.font;
 
 import java.io.IOException;
 
+import mdesl.font.BitmapFontWriter.OutputFormat;
 import mdesl.font.FontPackTool.FontItem;
 import mdesl.font.FontPackTool.FontPack;
 import mdesl.font.FontPackTool.FontPackDocument;
@@ -26,6 +27,9 @@ public class FontPackToolTest {
 		
 		//the file name of the image(s) that will be generated from the glyphs
 		String imageOutName = "fonts";
+		
+		//Optional: chnage format, i.e. for a different rendering engine (like Pixi.js)
+		//BitmapFontWriter.setOutputFormat(OutputFormat.XML);
 		
 		//right now the tool returns a PixmapPacker; this is likely to change in future releases...
 		FontPack pack = FontPackTool.pack(doc, outDir, imageOutName);

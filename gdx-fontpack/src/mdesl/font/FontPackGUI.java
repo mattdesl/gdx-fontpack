@@ -53,6 +53,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+import mdesl.font.BitmapFontWriter.OutputFormat;
 import mdesl.font.FileUtil.BrowseType;
 import mdesl.font.FileUtil.DefaultDir;
 import mdesl.font.FileUtil.FileType;
@@ -117,6 +118,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	AtlasPanel atlasPanel = new AtlasPanel();
 	
 	FontEditDialog fntDiag;
+	
+	JComboBox outFormatBox;
 	
 	JCheckBox testCheckBox;
 	JLabel pageLabel;
@@ -448,6 +451,12 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		
 		settingsTable.addCell(hr("output")).expandX().fillX().padTop(20).padBottom(5).colspan(2).row();
 		
+		outFormatBox = new JComboBox(BitmapFontWriter.OutputFormat.values());
+		
+		settingsTable.addCell("Format:").right().padRight(HPAD);
+		settingsTable.addCell(outFormatBox).left();
+		settingsTable.row();
+		
 		settingsTable.addCell("Name:").right().padRight(HPAD);
 		settingsTable.addCell(outNameField).expandX().fillX();
 		settingsTable.row();
@@ -764,6 +773,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		}
 		
 		try {
+			BitmapFontWriter.setOutputFormat( (OutputFormat)outFormatBox.getSelectedItem() );
 			fontPack = FontPackTool.pack(doc, outDir, imageOutName);
 			onAtlasChanged(fontPack);
 			

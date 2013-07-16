@@ -94,8 +94,12 @@ public class BitmapFontWriter {
 	}
 	
 	private static String quote(Object params) {
+		return quote(params, false);
+	}
+	
+	private static String quote(Object params, boolean spaceAfter) {
 		if (BitmapFontWriter.getOutputFormat() == OutputFormat.XML)
-			return "\"" + params + "\"";
+			return "\"" + params.toString().trim() + "\"" + (spaceAfter ? " " : "");
 		else
 			return params.toString();
 	}
@@ -141,6 +145,7 @@ public class BitmapFontWriter {
 		String xmlOpen = xml ? "\t<" : "";
 		String xmlCloseSelf = xml ? "/>" : "";
 		String xmlTab = xml ? "\t" : "";
+		String xmlClose = xml ? ">" : "";
 		
 		String xmlQuote = xml ? "\"" : "";
 		String alphaChnlParams =
@@ -219,8 +224,8 @@ public class BitmapFontWriter {
 		}
 		
 		buf.append(xmlOpen)
-			.append("chars count=").append(glyphs.size)
-			.append(xmlCloseSelf)
+			.append("chars count=").append(quote(glyphs.size))
+			.append(xmlClose)
 			.append("\n");
 		
 		//CHAR definitions
@@ -229,19 +234,22 @@ public class BitmapFontWriter {
 			buf.append(xmlTab)
 				.append(xmlOpen)
 				.append("char id=")
-				.append(quote( String.format("%-5s", g.id) ))
-				.append("x=").append(quote( String.format("%-5s", g.srcX)) )
-				.append("y=").append(quote( String.format("%-5s", g.srcY)) )
-				.append("width=").append(quote( String.format("%-5s", g.width)) )
-				.append("height=").append(quote( String.format("%-5s", g.height)) )
-				.append("xoffset=").append(quote( String.format("%-5s", g.xoffset)) )
-				.append("yoffset=").append(quote( String.format("%-5s", fontData.flipped ? g.yoffset : -(g.height + g.yoffset) )) )
-				.append("xadvance=").append(quote( String.format("%-5s", g.xadvance)) )
-				.append("page=").append(quote( String.format("%-5s", g.page)) )
-				.append("chnl=").append(quote(0))
+				.append(quote( String.format("%-5s", g.id), true ))
+				.append("x=").append(quote( String.format("%-5s", g.srcX), true ) )
+				.append("y=").append(quote( String.format("%-5s", g.srcY), true ) )
+				.append("width=").append(quote( String.format("%-5s", g.width), true ) )
+				.append("height=").append(quote( String.format("%-5s", g.height), true ) )
+				.append("xoffset=").append(quote( String.format("%-5s", g.xoffset), true ) )
+				.append("yoffset=").append(quote( String.format("%-5s", fontData.flipped ? g.yoffset : -(g.height + g.yoffset) ), true ) )
+				.append("xadvance=").append(quote( String.format("%-5s", g.xadvance), true ) )
+				.append("page=").append(quote( String.format("%-5s", g.page), true ) )
+				.append("chnl=").append(quote(0, true))
 				.append(xmlCloseSelf)
 				.append("\n");
 		}
+		
+		if (xml)
+			buf.append("\t</chars>\n");
 		
 		//KERNINGS
 		int kernCount = 0;
@@ -257,7 +265,7 @@ public class BitmapFontWriter {
 							.append(xmlOpen)
 							.append("kerning first=").append(quote(first.id))
 							.append(" second=").append(quote(second.id))
-							.append(" amount=").append(quote(kern))
+							.append(" amount=").append(quote(kern, true))
 							.append(xmlCloseSelf)
 							.append("\n");
 				}
@@ -267,9 +275,14 @@ public class BitmapFontWriter {
 		//KERN info
 		buf.append(xmlOpen)
 			.append("kernings count=").append(quote(kernCount))
-			.append(xmlCloseSelf)
+			.append(xmlClose)
 			.append("\n");
 		buf.append(kernBuf);
+		
+		if (xml) {
+			buf.append("\t</kernings>\n");
+			buf.append("</font>");
+		}
 		
 		String charset = info.charset;
 		if (charset!=null&&charset.length()==0)
