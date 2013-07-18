@@ -33,7 +33,7 @@ import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
  * @author Nathan Sweet */
 public abstract class Toolkit<C, T extends C, L extends BaseTableLayout> {
 	static public Toolkit instance;
-
+	
 	abstract public Cell obtainCell (L layout);
 
 	abstract public void freeCell (Cell cell);

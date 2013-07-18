@@ -61,8 +61,9 @@ import mdesl.font.FontPackTool.FontItem;
 import mdesl.font.FontPackTool.FontPack;
 import mdesl.font.FontPackTool.FontPackDocument;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.badlogic.gdx.backends.lwjgl.LwjglCanvas;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
@@ -601,17 +602,43 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			
 			@Override
 			public void actionPerformed (ActionEvent arg0) {
-				if (testPanel==null) { 
-					testPanel = new TestPanel();
-					outputCards.add(testPanel, TEST_VIEW);
-					outputCards.revalidate();	
-				}
-				outputCardLayout.show(outputCards, testCheckBox.isSelected() ? TEST_VIEW : GLYPHS_VIEW);
 				
-				if (testCheckBox.isSelected())
+				boolean testMode = testCheckBox.isSelected();
+				
+				//testPanel.canvas.getCanvas().setVisible(testCheckBox.isSelected());
+				
+				if (testMode) {
+					if (testPanel==null) { 
+						testPanel = new TestPanel();
+						outputCards.add(testPanel, TEST_VIEW);
+						outputCards.revalidate();	
+					}
+					
 					testPanel.update();
-				else
+					outputCardLayout.show(outputCards, testMode ? TEST_VIEW : GLYPHS_VIEW);
+					
+				} else {
+					outputCardLayout.show(outputCards, testMode ? TEST_VIEW : GLYPHS_VIEW);
+					System.out.println("end show");
 					onAtlasChanged(fontPack);
+					System.out.println("end change");
+					if (testPanel!=null) {
+						
+						testPanel.canvas.stop();
+						System.out.println("stopping");
+						outputCards.remove(testPanel);
+						System.out.println("removing");
+						outputCards.revalidate();
+						outputCards.repaint();
+						System.out.println("revalidating");
+						testPanel = null;
+					}
+				}
+				
+				if (testPanel!=null)
+					testPanel.setRendering(testMode);
+				
+				
 			}
 		});
 		
@@ -1294,10 +1321,9 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	class TestPanel extends Table {
 
 		TestFontPanel panel;
-		LwjglCanvas canvas;
+		LwjglAWTCanvas canvas;
 		
 		public TestPanel() {
-			
 			panel = new TestFontPanel(background, FontPackGUI.this);
 			LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 			config.width = 350;
@@ -1305,13 +1331,25 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			config.useGL20 = true;
 			config.initialBackgroundColor = com.badlogic.gdx.graphics.Color.BLACK;
 			
-			canvas = new LwjglCanvas(panel, config);
+			canvas = new LwjglAWTCanvas(panel, true);
 			
 			addCell(canvas.getCanvas()).minSize(100, 100).expand().fill();
 		}
 		
 		public void update() {
 			panel.update(fontPack, false, background);
+		}
+		
+		public void setRendering(boolean rendering) {
+			if (Gdx.graphics!=null)
+				Gdx.graphics.setContinuousRendering(rendering);
+		}
+		
+		public boolean isRendering() {
+			if (Gdx.graphics!=null)
+				return Gdx.graphics.isContinuousRendering();
+			else 
+				return false;
 		}
 	}
 }
