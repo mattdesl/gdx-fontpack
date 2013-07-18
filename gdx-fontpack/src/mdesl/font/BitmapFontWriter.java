@@ -8,12 +8,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont.Glyph;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker.Page;
 import com.badlogic.gdx.utils.Array;
 
-/**
- * A utility to output BitmapFontData to a FNT file. This can be useful for caching the result from
- * TrueTypeFont, for faster load times. 
+/** A utility to output BitmapFontData to a FNT file. This can be useful for caching the result from TrueTypeFont, for faster load
+ * times.
  * 
- * @author mattdesl AKA davedes
- */
+ * The font format is from the AngelCodeFont BMFont tool.
+ * 
+ * @author mattdesl AKA davedes */
 public class BitmapFontWriter {
 
 	/** The output format. */
@@ -25,14 +25,21 @@ public class BitmapFontWriter {
 		XML;
 	}
 	
+	/** The output format */
 	private static OutputFormat format = OutputFormat.Text;
-	
+
+	/** Sets the AngelCodeFont output format for subsequent writes; can be text (for LibGDX) or XML (for other engines, like
+	 * Pixi.js).
+	 * 
+	 * @param fmt the output format to use */
 	public static void setOutputFormat(OutputFormat fmt) {
 		if (fmt==null)
 			throw new NullPointerException("format cannot be null");
 		format = fmt;
 	}
-	
+
+	/** Returns the currently used output format.
+	 * @return the output format */
 	public static OutputFormat getOutputFormat() {
 		return format;
 	}
@@ -103,27 +110,23 @@ public class BitmapFontWriter {
 		else
 			return params.toString();
 	}
-	
-	/**
-	 * Writes the given BitmapFontData to a file, using the specified <tt>pageRefs</tt> strings as the 
-	 * image paths for each texture page. The glyphs in BitmapFontData have a "page" id, which references
-	 * the index of the pageRef you specify here. 
+
+	/** Writes the given BitmapFontData to a file, using the specified <tt>pageRefs</tt> strings as the image paths for each texture
+	 * page. The glyphs in BitmapFontData have a "page" id, which references the index of the pageRef you specify here.
 	 * 
-	 * The FontInfo parameter is useful for cleaner output; such as including a size and font face name hint. 
-	 * However, it can be null to use default values. Ultimately, LibGDX ignores the "info" line when reading back
-	 * fonts.
+	 * The FontInfo parameter is useful for cleaner output; such as including a size and font face name hint. However, it can be
+	 * null to use default values. Ultimately, LibGDX ignores the "info" line when reading back fonts.
 	 * 
-	 * Likewise, the scaleW and scaleH are only for cleaner output. They are currently ignored by LibGDX's reader.
-	 * For maximum compatibility with other BMFont tools, you should use the width and height of your texture pages 
-	 * (each page should be the same size).
+	 * Likewise, the scaleW and scaleH are only for cleaner output. They are currently ignored by LibGDX's reader. For maximum
+	 * compatibility with other BMFont tools, you should use the width and height of your texture pages (each page should be the
+	 * same size).
 	 * 
 	 * @param fontData the bitmap font
 	 * @param pageRefs the references to each texture page image file, generally in the same folder as outFntFile
 	 * @param outFntFile the font file to save to (typically ends with '.fnt')
 	 * @param info the optional info for the file header; can be null
 	 * @param scaleW the width of your texture pages
-	 * @param scaleH the height of your texture pages
-	 */
+	 * @param scaleH the height of your texture pages */
 	public static void writeFont (BitmapFontData fontData, String[] pageRefs, FileHandle outFntFile, FontInfo info, int scaleW, int scaleH) {
 		if (info==null) {
 			info = new FontInfo();
@@ -292,24 +295,23 @@ public class BitmapFontWriter {
 	}
 
 	
-	/**
-	 * A utility method which writes the given font data to a file. 
+	/** A utility method which writes the given font data to a file.
 	 * 
-	 * The specified pixmaps are written to the parent directory of <tt>outFntFile</tt>, using that file's
-	 * name without an extension for the PNG file name(s). 
+	 * The specified pixmaps are written to the parent directory of <tt>outFntFile</tt>, using that file's name without an
+	 * extension for the PNG file name(s).
 	 * 
-	 * The specified FontInfo is optional, and can be null. 
+	 * The specified FontInfo is optional, and can be null.
 	 * 
-	 *  Typical usage looks like this:
-	 *  <pre>
-	 *      BitmapFontWriter.writeFont( myFontData, myFontPixmaps, Gdx.files.external("fonts/output.fnt"), new FontInfo("Arial", 16) ); 
-	 *  </pre>
+	 * Typical usage looks like this:
+	 * 
+	 * <pre>
+	 * BitmapFontWriter.writeFont(myFontData, myFontPixmaps, Gdx.files.external(&quot;fonts/output.fnt&quot;), new FontInfo(&quot;Arial&quot;, 16));
+	 * </pre>
 	 * 
 	 * @param fontData the font data
 	 * @param pages the pixmaps to write as PNGs
 	 * @param outFntFile the output file for the font definition
-	 * @param info the optional font info for the header file, can be null
-	 */
+	 * @param info the optional font info for the header file, can be null */
 	public static void writeFont (BitmapFontData fontData, Pixmap[] pages, FileHandle outFntFile, FontInfo info) {
 		String[] pageRefs = writePixmaps(pages, outFntFile.parent(), outFntFile.nameWithoutExtension());
 		
@@ -317,22 +319,20 @@ public class BitmapFontWriter {
 		writeFont(fontData, pageRefs, outFntFile, info, pages[0].getWidth(), pages[0].getHeight());
 	}
 
-	/**
-	 * A utility method to write the given array of pixmaps to the given output directory, with the specified
-	 * file name. If the pages array is of length 1, then the resulting file ref will look like: "fileName.png".
+	/** A utility method to write the given array of pixmaps to the given output directory, with the specified file name. If the
+	 * pages array is of length 1, then the resulting file ref will look like: "fileName.png".
 	 * 
-	 * If the pages array is greater than length 1, the resulting file refs will be appended with "_N", such as
-	 * "fileName_0.png", "fileName_1.png", "fileName_2.png" etc.
+	 * If the pages array is greater than length 1, the resulting file refs will be appended with "_N", such as "fileName_0.png",
+	 * "fileName_1.png", "fileName_2.png" etc.
 	 * 
 	 * The returned string array can then be passed to the <tt>writeFont</tt> method.
 	 * 
 	 * Note: None of the pixmaps will be disposed.
 	 * 
 	 * @param pages the pages of pixmap data to write
-	 * @param outputDir the output directory 
+	 * @param outputDir the output directory
 	 * @param fileName the file names for the output images
-	 * @return the array of string references to be used with <tt>writeFont</tt>
-	 */
+	 * @return the array of string references to be used with <tt>writeFont</tt> */
 	public static String[] writePixmaps (Pixmap[] pages, FileHandle outputDir, String fileName) {
 		if (pages==null || pages.length==0)
 			throw new IllegalArgumentException("no pixmaps supplied to BitmapFontWriter.write");
@@ -350,15 +350,14 @@ public class BitmapFontWriter {
 		}
 		return pageRefs;
 	}
-	
-	/** A convenience method to write pixmaps by page; typically returned from a PixmapPacker when used
-	 * alongside FreeTypeFontGenerator.
+
+	/** A convenience method to write pixmaps by page; typically returned from a PixmapPacker when used alongside
+	 * FreeTypeFontGenerator.
 	 * 
 	 * @param pages the pages containing the Pixmaps
 	 * @param outputDir the output directory
 	 * @param fileName the file name
-	 * @return the file refs
-	 */
+	 * @return the file refs */
 	public static String[] writePixmaps (Array<Page> pages, FileHandle outputDir, String fileName) {
 		Pixmap[] pix = new Pixmap[pages.size];
 		for (int i=0; i<pages.size; i++) {
