@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.filters.FreeTypeFilter;
 import com.badlogic.gdx.graphics.g2d.freetype.filters.FreeTypePaddingFilter;
 import com.badlogic.gdx.graphics.g2d.freetype.filters.FreeTypeShadowFilter;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -224,7 +225,15 @@ public class FontPackTool {
 			
 			//initialize the new font...
 			FileHandle file = new FileHandle(font.path);
-			FreeTypeFontGenerator gen = new FreeTypeFontGenerator(file);
+			if (!file.exists())
+				throw new IOException(font.key+" does not exist at path "+font.path);
+			
+			FreeTypeFontGenerator gen = null;
+			try {
+				gen = new FreeTypeFontGenerator(file);
+			} catch (Exception e) {
+				throw new InvalidFontFileException(font);
+			}
 			setupFilters(gen, s);
 			
 			for (int i=0; i<sizes.length; i++) {
@@ -240,7 +249,12 @@ public class FontPackTool {
 				}
 				
 				//generate the data, packing it into our atlas
-				BitmapFontData data = gen.generateData(sizes[i], s.characters, s.flip, packer);
+				BitmapFontData data = null;
+				try {
+					data = gen.generateData(sizes[i], s.characters, s.flip, packer);
+				} catch (GdxRuntimeException e) {
+					throw new InvalidFontFileException(font, e.getMessage());
+				}
 				loadedFontCount++;
 				
 				//push the font into our map
@@ -350,5 +364,22 @@ public class FontPackTool {
 			return 0;
 		}
 		
+	}
+	
+	public static class InvalidFontFileException extends IOException {
+		
+		private static final long serialVersionUID = 1L;
+		
+		public final FontItem item;
+
+		public InvalidFontFileException(FontItem item, String msg) {
+			super("Unable to load font at path "+item.path+": "+msg);
+			this.item = item;
+		}
+		
+		public InvalidFontFileException(FontItem item) {
+			super("Unable to load font at path "+item.path);
+			this.item = item;
+		}
 	}
 }

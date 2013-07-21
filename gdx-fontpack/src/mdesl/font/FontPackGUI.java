@@ -20,6 +20,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.prefs.Preferences;
 
@@ -35,14 +36,18 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -55,15 +60,15 @@ import javax.swing.text.DocumentFilter;
 
 import mdesl.font.BitmapFontWriter.OutputFormat;
 import mdesl.font.FileUtil.BrowseType;
-import mdesl.font.FileUtil.DefaultDir;
+import mdesl.font.FileUtil.PrefType;
 import mdesl.font.FileUtil.FileType;
 import mdesl.font.FontPackTool.FontItem;
 import mdesl.font.FontPackTool.FontPack;
 import mdesl.font.FontPackTool.FontPackDocument;
+import mdesl.font.FontPackTool.InvalidFontFileException;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl.LwjglCanvas;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
@@ -77,6 +82,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	
 	private static boolean useJFileChooser = true;
 	
+	private static final boolean DISABLE_GL_ON_HIDE = true;
+	
 	public static void main(String[] args) {
 		new SharedLibraryLoader("libs/gdx-natives.jar").load("gdx");
 		new SharedLibraryLoader("libs/gdx-freetype-natives.jar").load("gdx-freetype");
@@ -86,7 +93,13 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			useJFileChooser = false;
 		}
 		
-		new FontPackGUI();
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run () {
+				new FontPackGUI();
+			}
+		});
 	}
 	
 	final int MAX_SPINNER_VALUE = 999;
@@ -132,10 +145,24 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	FontPack fontPack;
 	
 	ShadowEditDialog shadowEdit;
+	EditCharsDialog editChars;
+
+	FontItem lastInvalidFont;
 	
 	CardLayout outputCardLayout; 
 	JPanel outputCards;
 	TestPanel testPanel;
+	Table glyphTable = new Table();
+	Timer glDisposeTimer = new Timer(1000, new ActionListener() {
+
+		@Override
+		public void actionPerformed (ActionEvent arg0) {
+			System.out.println("dsipose");
+		}
+		
+	});
+	
+	String charSet = FontPackTool.ABRIDGED_CHARS;
 	
 	public static final String GLYPHS_VIEW = "GLYPHS_VIEW";
 	public static final String TEST_VIEW = "TEST_VIEW";
@@ -180,7 +207,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		
 		updateOutput();
 		
-		setSize(850, 600);
+		setSize(950, 650);
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
@@ -288,7 +315,6 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		outputCardLayout = new CardLayout();
 		outputCards = new JPanel(outputCardLayout);
 		
-		Table glyphTable = new Table();
 		glyphTable.addCell(styleTable).expandX().fillX().row();
 		glyphTable.addCell(atlasPanel).expand().fill();
 		
@@ -346,11 +372,36 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		
 		settingsTable.addCell(hr("settings")).expandX().fillX().padTop(20).padBottom(5).colspan(2).row();
 		
+		final IconButton editGlyphsBtn = new IconButton(this, "Edit", "/data/pencil.png");
+		editGlyphsBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed (ActionEvent arg0) {
+				if (editChars==null)
+					editChars = new EditCharsDialog(FontPackGUI.this);
+				
+				String res = editChars.showEdit(charSet);
+				if (res!=null) {
+					if (res.length()==0) {
+						JOptionPane.showMessageDialog(FontPackGUI.this, "No characters specified!", "Error", JOptionPane.ERROR_MESSAGE);
+					} else {
+						charSet = res;
+						updateOutput();
+					}
+				}
+			}
+		});
+		
+		settingsTable.addCell("Glyphs:").right().padRight(HPAD);
+		
+		settingsTable.addCell(editGlyphsBtn).left();
+		settingsTable.row();
+		
 		//WIDTH, HEIGHT
 		settingsTable.addCell("Size:").right().padRight(HPAD);
 		
-		sizeWidth = new JSpinner(new SpinnerNumberModel(256, 1, 16384, 1));
-		sizeHeight = new JSpinner(new SpinnerNumberModel(256, 1, 16384, 1));
+		sizeWidth = new JSpinner(new SpinnerNumberModel(512, 1, 16384, 1));
+		sizeHeight = new JSpinner(new SpinnerNumberModel(512, 1, 16384, 1));
 		sizeWidth.setEditor(new JSpinner.NumberEditor(sizeWidth, "#"));
 		sizeHeight.setEditor(new JSpinner.NumberEditor(sizeHeight, "#"));
 		sizeWidth.addChangeListener(new UpdateChange());
@@ -364,7 +415,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		settingsTable.addCell(sizeTable).expandX().fillX().row();
 		
 		//SPACING
-		spacingSpinner = new JSpinner(new SpinnerNumberModel(0, 0, MAX_SPINNER_VALUE, 1));
+		spacingSpinner = new JSpinner(new SpinnerNumberModel(1, 0, MAX_SPINNER_VALUE, 1));
 		spacingSpinner.addChangeListener(new UpdateChange());
 		
 		settingsTable.addCell("Spacing:").right().padRight(HPAD);
@@ -436,7 +487,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			
 			@Override
 			public void actionPerformed (ActionEvent arg0) {
-				File f = fileChooser.browse(BrowseType.Open, FileType.None, DefaultDir.Home, true, outPathField.getText());
+				File f = fileChooser.browse(BrowseType.Open, FileType.None, PrefType.FontSave, true, outPathField.getText());
 				if (f!=null)
 					outPathField.setText(f.getAbsolutePath());
 			}
@@ -480,8 +531,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		int max = MAX_SPINNER_VALUE;
 		padTop = new JSpinner(new SpinnerNumberModel(0, -max, max, 1));
 		padLeft = new JSpinner(new SpinnerNumberModel(0, -max, max, 1));
-		padBottom = new JSpinner(new SpinnerNumberModel(2, -max, max, 1));
-		padRight = new JSpinner(new SpinnerNumberModel(2, -max, max, 1));
+		padBottom = new JSpinner(new SpinnerNumberModel(0, -max, max, 1));
+		padRight = new JSpinner(new SpinnerNumberModel(0, -max, max, 1));
 		
 		padTop.addChangeListener(new UpdateChange());
 		padLeft.addChangeListener(new UpdateChange());
@@ -504,6 +555,26 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		fontList = new JList();
 		fontList.setModel(listModel);
 		fontList.setCellRenderer(new FontCellRenderer());
+		
+
+		new FileDrop(fontList, new FileDrop.Listener() {
+			public void filesDropped (java.io.File[] files) {
+				for (int i = 0; i < files.length; i++) {
+					FontItem item = new FontItem();
+					String fName = files[i].getName();
+					
+					int idx = fName.lastIndexOf('.');
+					if (idx>0)
+						fName = fName.substring(0, idx);
+					
+					item.key = fName;
+					item.path = files[i].getAbsolutePath();
+					listModel.addElement(item);
+				}
+				updateOutput();
+				
+			}
+		});		
 		
 		FontItem item = new FontItem("Arial", "Arial.ttf");
 		listModel.addElement(item);
@@ -605,8 +676,6 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 				
 				boolean testMode = testCheckBox.isSelected();
 				
-				//testPanel.canvas.getCanvas().setVisible(testCheckBox.isSelected());
-				
 				if (testMode) {
 					if (testPanel==null) { 
 						testPanel = new TestPanel();
@@ -619,26 +688,17 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 					
 				} else {
 					outputCardLayout.show(outputCards, testMode ? TEST_VIEW : GLYPHS_VIEW);
-					System.out.println("end show");
 					onAtlasChanged(fontPack);
-					System.out.println("end change");
-					if (testPanel!=null) {
-						
+					
+					if (testPanel!=null && DISABLE_GL_ON_HIDE) {
 						testPanel.canvas.stop();
-						System.out.println("stopping");
 						outputCards.remove(testPanel);
-						System.out.println("removing");
-						outputCards.revalidate();
-						outputCards.repaint();
-						System.out.println("revalidating");
 						testPanel = null;
 					}
 				}
 				
-				if (testPanel!=null)
-					testPanel.setRendering(testMode);
-				
-				
+//				if (testPanel!=null)
+//					testPanel.setRendering(testMode);
 			}
 		});
 		
@@ -655,6 +715,17 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		listTable.addCell(btnTable).expandX().fillX();
 	}
 	
+	private void glCanvasStopped() {
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run () {
+				//outputCards.remove(testPanel);
+				testPanel = null;
+			}
+		});
+	}
+	
 	class IconButton extends JButton {
 		
 		Color btnBG_Active = new Color(0.85f, 0.85f, 0.85f);
@@ -664,17 +735,34 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		public boolean entered = false;
 		public boolean pressed = false;
 		private Window parent;
+		boolean hasText = false;
 		
 		public IconButton(Window parent, String resourcePath) {
+			this(parent, null, resourcePath);
+		}
+		
+		public IconButton(Window parent, String text, String resourcePath) {
 			this.parent = parent;
+			setText(text);
 			setIcon(new ImageIcon(FontPackGUI.class.getResource(resourcePath)));
 			setContentAreaFilled(false);
 			setBorderPainted(false);
-			Dimension d = new Dimension(ICON_SIZE, ICON_SIZE);
+			
+			int w = ICON_SIZE;
 			setRequestFocusEnabled(false);
+			if (text==null) {
+				
+			} else {
+				hasText = true;
+				setHorizontalTextPosition(LEFT);
+				w = getPreferredSize().width;
+			}
+			
+			Dimension d = new Dimension(w, ICON_SIZE);
 			setSize(d);
 			setPreferredSize(d);
 			setMaximumSize(d);
+			
 			addMouseListener(new MouseAdapter() {
 
 				@Override
@@ -711,7 +799,12 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 				g.setColor(pressed ? btnBG_Pressed : btnBG_Active);
 				g.setClip(0, 0, getWidth(), getHeight());
 				((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				g.fillRoundRect(getWidth()/2 - ICON_SIZE/2, getHeight()/2 - ICON_SIZE/2, ICON_SIZE, ICON_SIZE, 10, 10);
+				
+				
+				int w = hasText ? getWidth() : ICON_SIZE;
+				int x = hasText ? 0 : (getWidth()/2 - ICON_SIZE/2);
+				
+				g.fillRoundRect(x, getHeight()/2 - ICON_SIZE/2, w, ICON_SIZE, 10, 10);
 			}
 			if (pressed && isEnabled())
 				g.translate(1, 1);
@@ -751,13 +844,15 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 //			e1.printStackTrace();
 //		}
 		
+		lastInvalidFont = null;
+		
 		FileHandle outDir = null;
 		String imageOutName = outNameField.getText().length()==0 ? "fonts" : outNameField.getText();
 		if (save) {
 			String fieldText = outPathField.getText();
 			if (fieldText.length()==0) {
 			
-				File f = fileChooser.browse(BrowseType.Open, FileType.None, DefaultDir.Home, true, fieldText);
+				File f = fileChooser.browse(BrowseType.Open, FileType.None, PrefType.FontSave, true, fieldText);
 				if (f==null) //cancelled
 					return;
 				fieldText = f.getAbsolutePath();
@@ -769,7 +864,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		doc.atlasWidth = ((Number)sizeWidth.getValue()).intValue();
 		doc.atlasHeight = ((Number)sizeHeight.getValue()).intValue();
 		doc.spacing = ((Number)spacingSpinner.getValue()).intValue();
-		doc.defaultSettings.characters = FontPackTool.ABRIDGED_CHARS;
+		doc.defaultSettings.characters = charSet;
 		
 		doc.defaultSettings.glow = shadowCheckbox.isSelected();
 		doc.defaultSettings.glowOffsetX = (shadowEdit!=null) ? ((Number)shadowEdit.offX.getValue()).intValue() : 1;
@@ -805,11 +900,12 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			onAtlasChanged(fontPack);
 			
 //			packer.dispose();
+		}
+		catch (InvalidFontFileException e) {
+			status(iconErr, e.getMessage());
+			lastInvalidFont = e.item;
 		} catch (Exception e) {
 			status(iconErr, e.getMessage());
-			
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
 		}
 	}
 	
@@ -1241,6 +1337,22 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			pathButton = new IconButton(this, "/data/folder-2.png");
 			pathField.addActionListener(successAction);
 			
+			pathButton.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed (ActionEvent arg0) {
+					File f = fileChooser.browse(BrowseType.Open, FileType.FreeType, PrefType.FontLoad, false, null);
+					if (f!=null) {
+						String fName = f.getName();
+						int idx = fName.lastIndexOf('.');
+						if (idx>0)
+							fName = fName.substring(0, idx);
+						keyField.setText(fName);
+						pathField.setText( f.getAbsolutePath() );
+					}
+				}
+			});
+			
 			keyField = new JTextField();
 			keyField.addActionListener(successAction);
 			form.addCell("Key:").padRight(5).right();
@@ -1313,31 +1425,112 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 					if (oKey!=null && oItem!=item && oKey.equals(thisKey))
 						setForeground(Color.RED);
 				}
+				
+				if (item!=null && item == lastInvalidFont)
+					setForeground(Color.RED);
 			}
 			return this;
+		}
+	}
+	
+	class EditCharsDialog extends AbstractDialog {
+		
+		JTextArea charField;
+		
+		EditCharsDialog(Frame parent) {
+			super(parent, true);
+			setLocationRelativeTo(parent);
+		}
+		
+		protected int setup(Table form, ActionListener successAction) {
+			form.top().left();
+			
+			charField = new JTextArea(FontPackTool.ABRIDGED_CHARS);
+			charField.setWrapStyleWord(false);
+			charField.setLineWrap(true);
+			
+			JScrollPane sp = new JScrollPane(charField);
+			
+			form.addCell("Characters:").left().padBottom(5).row();
+			form.addCell(sp).expand().fill().minSize(100, 100);
+			
+			final IconButton resetBtn = new IconButton(this, "Reset", "/data/revert.png");
+			final IconButton resetBtn2 = new IconButton(this, "Reset (Extended)", "/data/revert.png"); 
+			resetBtn.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed (ActionEvent arg0) {
+					charField.setText(FontPackTool.ABRIDGED_CHARS);
+				}
+			});
+			resetBtn2.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed (ActionEvent arg0) {
+					charField.setText(FontPackTool.DEFAULT_CHARS);
+				}
+			});
+			
+			form.row().padTop(2);
+			
+			Table inner = new Table();
+			inner.left();
+			inner.addCell(resetBtn).left().row();
+			inner.addCell(resetBtn2).left();
+			form.addCell(inner).left();
+			
+			return 400;
+		}
+		
+		private String trimDuplicates(String text) {
+			StringBuffer buf = new StringBuffer();
+			for (int j=0; j<text.length(); j++) {
+				char c = text.charAt(j);
+				String str = String.valueOf(c);
+				if (buf.indexOf(str) == -1)
+					buf.append(str);
+			}
+			return buf.toString();
+		}
+		
+		public String showEdit(String curChars) {
+			charField.setText(curChars);
+			setVisible(true);
+			if (success) 
+				return trimDuplicates(charField.getText());
+			return null;
 		}
 	}
 	
 	class TestPanel extends Table {
 
 		TestFontPanel panel;
-		LwjglAWTCanvas canvas;
+		LwjglCanvas canvas;
 		
 		public TestPanel() {
 			panel = new TestFontPanel(background, FontPackGUI.this);
-			LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-			config.width = 350;
-			config.height = 350;
-			config.useGL20 = true;
-			config.initialBackgroundColor = com.badlogic.gdx.graphics.Color.BLACK;
+//			LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+//			config.width = 350;
+//			config.height = 350;
+//			config.useGL20 = true;
+//			config.initialBackgroundColor = com.badlogic.gdx.graphics.Color.BLACK;
 			
-			canvas = new LwjglAWTCanvas(panel, true);
-			
+			canvas = new LwjglCanvas(panel, true);
 			addCell(canvas.getCanvas()).minSize(100, 100).expand().fill();
 		}
 		
+		boolean containsCanvas() {
+			if (canvas==null)
+				return false;
+			for (Component c : getComponents()) 
+				if (c == canvas.getCanvas())
+					return true;
+			return false;
+		}
+		
 		public void update() {
-			panel.update(fontPack, false, background);
+			if (canvas!=null)
+				panel.update(fontPack, false, background);
 		}
 		
 		public void setRendering(boolean rendering) {

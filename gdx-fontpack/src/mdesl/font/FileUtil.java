@@ -1,7 +1,10 @@
 package mdesl.font;
 
+import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.Window;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.prefs.BackingStoreException;
@@ -15,7 +18,7 @@ public class FileUtil {
 	JFileChooser jFileChooser;
 	FileDialog fileDialog;
 	boolean useJFileChooser;
-	Frame parent;
+	Component parent;
 	Preferences prefs;
 	String lastDir;
 	
@@ -38,21 +41,18 @@ public class FileUtil {
 		}
 	}
 	
-	public static enum DefaultDir {
-		Fonts,
-		Home;
+	public static enum PrefType {
+		FontLoad,
+		FontSave;
 	}
 	
-	
-	
-	
-	public FileUtil (Frame parent, boolean useJFileChooser, Preferences prefs) {
+	public FileUtil (Component parent, boolean useJFileChooser, Preferences prefs) {
 		this.prefs = prefs;
 		this.parent = parent;
 		this.useJFileChooser = useJFileChooser;
 		System.setProperty("apple.awt.fileDialogForDirectories", "true");
+		prefs.put("file."+BrowseType.Open.name()+"."+PrefType.FontLoad, getBestFontPath());
 	}
-	
 	
 	public String getBestFontPath() {
 		String os = System.getProperty("os.name").toLowerCase();
@@ -73,24 +73,35 @@ public class FileUtil {
 		return home;
 	}
 	
-	
 	/** Called to initialize the file chooser, if it hasn't already been created. 
 	 * The file chooser will be lazily created as necessary. */
-	public void init() {
+	public void init(Component parent) {
+		Component oldParent = this.parent;
+		this.parent = parent;
+		
 		if (useJFileChooser) {
 			if (jFileChooser!=null)
 				return;
 			jFileChooser = new JFileChooser();
 		} else {
-			if (fileDialog!=null)
+			if (fileDialog!=null && oldParent==parent) {
 				return;
-			fileDialog = new FileDialog(parent);
+			}
+			if (parent instanceof java.awt.Dialog)
+				fileDialog = new FileDialog((java.awt.Dialog)parent);
+			else if (parent instanceof Frame)
+				fileDialog = new FileDialog((Frame)parent);
+			else
+				throw new IllegalArgumentException("parent must be Dialog or Frame");
 		}
 	}
 	
+	public File browse(BrowseType browseType, FileType fileType, PrefType prefType, boolean dirsOnly, String startingDir) {
+		return browse(parent, browseType, fileType, prefType, dirsOnly, startingDir);
+	}
 	
-	public File browse(BrowseType browseType, FileType fileType, DefaultDir defaultDir, boolean dirsOnly, String startingDir) {
-		init();
+	public File browse(Component parent, BrowseType browseType, FileType fileType, PrefType prefType, boolean dirsOnly, String startingDir) {
+		init(parent);
 		
 		try {
 			prefs.sync();
@@ -116,9 +127,10 @@ public class FileUtil {
 			}
 		}
 		
-		String lastDir = startingDir!=null && startingDir.length()!=0 ? startingDir : prefs.get("file."+browseType.name(), null);
+		String lastDir = startingDir!=null && startingDir.length()!=0 
+						? startingDir : prefs.get("file."+browseType.name()+"."+prefType.name(), null);
 		if (lastDir==null) {
-			if (defaultDir==DefaultDir.Fonts) {
+			if (prefType==PrefType.FontLoad) {
 				lastDir = getBestFontPath(); 
 			} else {
 				lastDir = System.getProperty("user.home");
@@ -149,6 +161,7 @@ public class FileUtil {
 		} else {
 			System.setProperty("apple.awt.fileDialogForDirectories", Boolean.toString(dirsOnly));
 			
+			fileDialog.setAlwaysOnTop(true);
 			fileDialog.setFilenameFilter(fileType.awtFilter);
 			fileDialog.setDirectory(lastDir);
 			fileDialog.setFile(lastDirFileName);

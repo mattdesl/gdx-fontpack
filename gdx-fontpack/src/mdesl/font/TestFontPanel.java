@@ -100,7 +100,7 @@ public class TestFontPanel implements ApplicationListener {
 		labelInput.setPosition(10, Gdx.graphics.getHeight() - labelInput.getHeight() - 5);
 		input.setPosition(labelInput.getX()+labelInput.getWidth()+10, Gdx.graphics.getHeight() - input.getHeight() - 5);
 		
-		scaleSlider = new Slider(0, 2, 0.05f, false, skin);
+		scaleSlider = new Slider(0, 3, 0.05f, false, skin);
 		scaleSlider.setSnapToValues(new float[] { 0.0f, 0.5f, 1.0f}, 0.05f);
 		
 		scaleSlider.addListener(new ChangeListener() {
@@ -217,7 +217,10 @@ public class TestFontPanel implements ApplicationListener {
 	
 	public void update(final FontPack pack, final boolean flip, BGStyle background) {
 		this.background = background;
-	
+		
+		if (stage!=null)
+			stage.setKeyboardFocus(null);
+		
 		Gdx.app.postRunnable(new Runnable() {
 			public void run() {
 				//dispose old fonts...
@@ -280,12 +283,12 @@ public class TestFontPanel implements ApplicationListener {
 		
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		
-		stage.act();
-		stage.draw();
-		
-		final String text = input.getText()!=null && input.getText().length()==0 
-					? "The quick brown fox jumps over the lazy dog"
-					: input.getText();
+		boolean hasUserInput = false;
+		if (input.getText()!=null && input.getText().length()!=0)
+			hasUserInput = true;
+		final String text =  hasUserInput
+					? input.getText()
+					: "The quick brown fox jumps over the lazy dog";
 		
 		float scale = scaleSlider.getValue();
 		
@@ -304,8 +307,8 @@ public class TestFontPanel implements ApplicationListener {
 			
 			for (FontElement e : fonts) {
 				y += e.font.getLineHeight() + 5;
-				
-				e.font.draw(batch, e.name + " " + e.size+": " +text, x, y);
+				String str = hasUserInput ? text : e.name + " " + e.size+": " +text;
+				e.font.draw(batch, str, x, y);
 			}
 			
 			batch.end();
@@ -317,6 +320,10 @@ public class TestFontPanel implements ApplicationListener {
 		labelScale.setY(labelInput.getY() - labelInput.getHeight() - 5);
 		scaleSlider.setY(input.getY() - input.getHeight() - 5);
 		scaleAmt.setY(scaleSlider.getY());
+		
+
+		stage.act();
+		stage.draw();
 	}
 
 	@Override
