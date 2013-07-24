@@ -1,6 +1,8 @@
-bin
-bin/*
+gdx-fontpack/bin
+gdx-fontpack/bin/*
 *.class
 .DS_Store
-out
-out/*
+gdx-fontpack/out
+gdx-fontpack/out/*
+gdx-fontpack/testfonts
+gdx-fontpack/testfonts/*

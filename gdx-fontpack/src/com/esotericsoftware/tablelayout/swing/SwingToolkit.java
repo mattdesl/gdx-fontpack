@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.tablelayout.swing;
 
-import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
-import com.esotericsoftware.tablelayout.Cell;
-import com.esotericsoftware.tablelayout.Toolkit;
+import com.esotericsoftware.tablelayout.SwingBaseTableLayout.Debug;
+import com.esotericsoftware.tablelayout.SwingCell;
+import com.esotericsoftware.tablelayout.SwingAbstractToolkit;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -14,17 +14,17 @@ import java.util.TimerTask;
 
 import javax.swing.JScrollPane;
 
-class SwingToolkit extends Toolkit<Component, Table, TableLayout> {
+class SwingToolkit extends SwingAbstractToolkit<Component, SwingTable, SwingTableLayout> {
 	static Timer timer;
-	static ArrayList<TableLayout> debugLayouts = new ArrayList(0);
+	static ArrayList<SwingTableLayout> debugLayouts = new ArrayList(0);
 
-	public Cell obtainCell (TableLayout layout) {
-		Cell cell = new Cell();
+	public SwingCell obtainCell (SwingTableLayout layout) {
+		SwingCell cell = new SwingCell();
 		cell.setLayout(layout);
 		return cell;
 	}
 
-	public void freeCell (Cell cell) {
+	public void freeCell (SwingCell cell) {
 	}
 
 	public void addChild (Component parent, Component child) {
@@ -70,12 +70,12 @@ class SwingToolkit extends Toolkit<Component, Table, TableLayout> {
 		return widget.getHeight();
 	}
 
-	public void clearDebugRectangles (TableLayout layout) {
+	public void clearDebugRectangles (SwingTableLayout layout) {
 		if (layout.debugRects != null) debugLayouts.remove(this);
 		layout.debugRects = null;
 	}
 
-	public void addDebugRectangle (TableLayout layout, Debug type, float x, float y, float w, float h) {
+	public void addDebugRectangle (SwingTableLayout layout, Debug type, float x, float y, float w, float h) {
 		if (layout.debugRects == null) {
 			layout.debugRects = new ArrayList();
 			debugLayouts.add(layout);
@@ -96,7 +96,7 @@ class SwingToolkit extends Toolkit<Component, Table, TableLayout> {
 					EventQueue.invokeLater(this);
 					return;
 				}
-				for (TableLayout layout : debugLayouts)
+				for (SwingTableLayout layout : debugLayouts)
 					layout.drawDebug();
 				timer.schedule(newDebugTask(), 250);
 			}

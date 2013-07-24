@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configuration of the Ant build system to generate a Jar file -->
+<project name="gdx-fontpack" default="CreateJar1">
+	<target name="Full" description="Full JAR Library">
+		<jar destfile="dist/gdx-fontpack-full.jar" basedir="bin/"
+			includes="**" excludes=".DS_store" />
+		<jar destfile="dist/gdx-fontpack-full.jar" update="true" basedir="assets/"
+			includes="data/**" excludes=".DS_store" />
+	</target>
+	
+	<target name="CommandLine" description="Command Line Library">
+		<jar destfile="dist/gdx-fontpack.jar" basedir="bin/"
+			includes="mdesl/font/BitmapFontWriter.class mdesl/font/FontPackTool.class" excludes=".DS_store" />
+	</target>
+</project>

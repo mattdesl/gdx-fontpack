@@ -6,7 +6,6 @@ import mdesl.font.FontPackTool.FontPack;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -21,9 +20,11 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.Widget;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -50,6 +51,8 @@ public class TestFontPanel implements ApplicationListener {
 	ToggleBox linearFiltering;
 	
 	Skin skin;
+	
+	Button myButton;
 	
 	public TestFontPanel(BGStyle background, FontPackGUI gui) {
 		this.background = background;
@@ -136,6 +139,7 @@ public class TestFontPanel implements ApplicationListener {
 		stage.addActor(scaleAmt);
 		stage.addActor(linearFiltering);
 	
+		myButton = new TextButton("Blah", skin);
 		
 	}
 	
@@ -321,7 +325,8 @@ public class TestFontPanel implements ApplicationListener {
 		scaleSlider.setY(input.getY() - input.getHeight() - 5);
 		scaleAmt.setY(scaleSlider.getY());
 		
-
+		linearFiltering.setY(scaleSlider.getY() - scaleSlider.getHeight() - 10);
+		
 		stage.act();
 		stage.draw();
 	}

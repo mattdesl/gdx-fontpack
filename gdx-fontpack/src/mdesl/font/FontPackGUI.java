@@ -76,7 +76,7 @@ import com.badlogic.gdx.graphics.g2d.PixmapPacker.Page;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
-import com.esotericsoftware.tablelayout.swing.Table;
+import com.esotericsoftware.tablelayout.swing.SwingTable;
 
 public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener {
 	
@@ -124,9 +124,9 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	Preferences prefs = Preferences.userNodeForPackage(FontPackGUI.class);
 	FileUtil fileChooser;
 	
-	Table listTable = new Table();
-	Table settingsTable = new Table();
-	Table outputTable = new Table();
+	SwingTable listTable = new SwingTable();
+	SwingTable settingsTable = new SwingTable();
+	SwingTable outputTable = new SwingTable();
 	
 	AtlasCache atlasCache;
 	AtlasPanel atlasPanel = new AtlasPanel();
@@ -138,7 +138,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	JCheckBox testCheckBox;
 	JLabel pageLabel;
 	IconButton pageLeft, pageRight;
-	Table root = new Table();
+	SwingTable root = new SwingTable();
 	JPanel statusPanel;
 	BGStyle background = BGStyle.Gray;
 	
@@ -152,7 +152,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	CardLayout outputCardLayout; 
 	JPanel outputCards;
 	TestPanel testPanel;
-	Table glyphTable = new Table();
+	SwingTable glyphTable = new SwingTable();
 	Timer glDisposeTimer = new Timer(1000, new ActionListener() {
 
 		@Override
@@ -207,7 +207,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		
 		updateOutput();
 		
-		setSize(950, 650);
+		setSize(750, 650);
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
@@ -220,7 +220,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		setupListTable();
 		setupSettingsTable();
 		
-		Table left = new Table();
+		SwingTable left = new SwingTable();
 		
 		left.addCell(listTable).expand().fill();
 		left.row();
@@ -259,7 +259,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 //		atlasPanel.setPreferredSize(d);
 //		atlasPanel.setMinimumSize(d);
 		
-		Table styleTable = new Table();
+		SwingTable styleTable = new SwingTable();
 		final JComboBox bgStyle = new JComboBox(BGStyle.values());
 		bgStyle.addActionListener(new ActionListener() {
 			
@@ -354,11 +354,11 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		statusBar.setText(text);
 	}
 	
-	private Table hr(String text) {
+	private SwingTable hr(String text) {
 		JLabel lbl = new JLabel(text);
 		lbl.setFont(lbl.getFont().deriveFont(Font.BOLD, 10f));
 		
-		Table table = new Table();
+		SwingTable table = new SwingTable();
 		table.addCell(new JSeparator()).expandX().fillX();
 		table.addCell(lbl).padLeft(5).padRight(5);
 		table.addCell(new JSeparator()).expandX().fillX();
@@ -407,7 +407,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		sizeWidth.addChangeListener(new UpdateChange());
 		sizeHeight.addChangeListener(new UpdateChange());
 		
-		Table sizeTable = new Table();
+		SwingTable sizeTable = new SwingTable();
 		sizeTable.left();
 		sizeTable.addCell(sizeWidth).left();
 		sizeTable.addCell("x").padLeft(3).padRight(3).center();
@@ -425,7 +425,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		//PADDING
 		settingsTable.addCell("Padding:").right().padRight(HPAD);
 		
-		Table padTable = paddingTable();
+		SwingTable padTable = paddingTable();
 		settingsTable.addCell(padTable).left();
 		
 		//SHADOW
@@ -453,7 +453,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			
 		});
 		
-		Table shadowTable = new Table();
+		SwingTable shadowTable = new SwingTable();
 		
 		settingsTable.row();
 		settingsTable.addCell("Shadow:").right().padRight(HPAD);
@@ -478,7 +478,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		
 		
 		//OUTPUT PATH
-		Table outTable = new Table();
+		SwingTable outTable = new SwingTable();
 		
 		outPathField = new JTextField();
 		outPathButton = new IconButton(this, "/data/folder-2.png");
@@ -525,8 +525,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	
 	JSpinner padTop, padLeft, padBottom, padRight;
 	
-	private Table paddingTable() {
-		Table spinnerTable = new Table();
+	private SwingTable paddingTable() {
+		SwingTable spinnerTable = new SwingTable();
 		
 		int max = MAX_SPINNER_VALUE;
 		padTop = new JSpinner(new SpinnerNumberModel(0, -max, max, 1));
@@ -576,8 +576,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			}
 		});		
 		
-		FontItem item = new FontItem("Arial", "Arial.ttf");
-		listModel.addElement(item);
+//		FontItem item = new FontItem("Arial", "Arial.ttf");
+//		listModel.addElement(item);
 		
 		addFntBtn = new IconButton(this, "/data/add.png");
 		delFntBtn = new IconButton(this, "/data/delete.png");
@@ -702,7 +702,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			}
 		});
 		
-		Table btnTable = new Table();
+		SwingTable btnTable = new SwingTable();
 		btnTable.left();
 		
 		btnTable.addCell(addFntBtn).size(28);
@@ -1163,7 +1163,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			super(parent, false);
 			setTitle("Shadow Settings");
 			
-			Table root = new Table();
+			SwingTable root = new SwingTable();
 			
 //			public boolean glow = false;
 //			public int glowOffsetX;
@@ -1199,7 +1199,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			offX.addChangeListener(new UpdateChange());
 			offY.addChangeListener(new UpdateChange());
 			
-			Table sizeTable = new Table();
+			SwingTable sizeTable = new SwingTable();
 			sizeTable.left();
 			sizeTable.addCell(offX).left().width(SPIN_WIDTH);
 			sizeTable.addCell("x").padLeft(3).padRight(3).center();
@@ -1233,7 +1233,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			
 			
 
-			Table sliderTable = new Table();
+			SwingTable sliderTable = new SwingTable();
 			sliderTable.left();
 			sliderTable.addCell(sliderSpinner).width(SPIN_WIDTH);
 			sliderTable.addCell(slider).expandX().fillX();
@@ -1298,15 +1298,15 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 				}
 			});
 			
-			Table content = new Table();
+			SwingTable content = new SwingTable();
 			content.pad(10);
 			
-			Table form = new Table();
+			SwingTable form = new SwingTable();
 			form.top().left();
 			
 			int w = setup(form, successAction);
 			
-			Table btnPanel = new Table();
+			SwingTable btnPanel = new SwingTable();
 			btnPanel.right();
 			btnPanel.addCell(okBtn);
 			btnPanel.addCell(cancelBtn);
@@ -1320,7 +1320,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			setSize(w, getHeight());
 		}
 		
-		protected abstract int setup(Table form, ActionListener successAction);
+		protected abstract int setup(SwingTable form, ActionListener successAction);
 	}
 	
 	class FontEditDialog extends AbstractDialog {
@@ -1332,7 +1332,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			super(parent, true);
 		}
 		
-		protected int setup(Table form, ActionListener successAction) {
+		protected int setup(SwingTable form, ActionListener successAction) {
 			pathField = new JTextField();
 			pathButton = new IconButton(this, "/data/folder-2.png");
 			pathField.addActionListener(successAction);
@@ -1442,7 +1442,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			setLocationRelativeTo(parent);
 		}
 		
-		protected int setup(Table form, ActionListener successAction) {
+		protected int setup(SwingTable form, ActionListener successAction) {
 			form.top().left();
 			
 			charField = new JTextArea(FontPackTool.ABRIDGED_CHARS);
@@ -1473,7 +1473,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			
 			form.row().padTop(2);
 			
-			Table inner = new Table();
+			SwingTable inner = new SwingTable();
 			inner.left();
 			inner.addCell(resetBtn).left().row();
 			inner.addCell(resetBtn2).left();
@@ -1502,7 +1502,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		}
 	}
 	
-	class TestPanel extends Table {
+	class TestPanel extends SwingTable {
 
 		TestFontPanel panel;
 		LwjglCanvas canvas;
