@@ -1,6 +1,6 @@
 # gdx-fontpack
 
-_Font and GUI packing tools for LibGDX_
+_Unofficial font and GUI packing tools for LibGDX_
 
 ## Features:
 
@@ -8,8 +8,7 @@ _Font and GUI packing tools for LibGDX_
 - Packs multiple fonts and sizes into a single atlas
 - Supports multiple texture pages
 - Drop shadow / outer glow effects
-- Adjustable padding and spacing
+- Adjustable padding and texture-packer spacing
 - Export as AngelCodeFont XML or text file
 
-[screen]
-
+![Screenshot](http://i.imgur.com/ra8poG2.png)
