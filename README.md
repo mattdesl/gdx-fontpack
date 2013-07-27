@@ -8,10 +8,7 @@ This project is in early stages. If you find a bug or want a new feature, you ca
 
 ## Download
 
-[test](https://github.com/mattdesl/gdx-fontpack/releases/tag/v1.0)
-[test2](releases/tag/v1.0)
-[test3](wiki/Using-the-GUI-Tool)
-
+[Latest](https://github.com/mattdesl/gdx-fontpack/releases/tag/v1.0)
 
 ## Features
 
