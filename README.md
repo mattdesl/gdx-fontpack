@@ -4,7 +4,7 @@ _Bitmap Font packing tool built on the gdx-FreeType extension_
 
 This project is in early stages. If you find a bug or want a new feature, you can open an issue.
 
-![Screenshot](http://i.imgur.com/ra8poG2.png)
+![Screenshot](http://i.imgur.com/egJNGyr.png)
 
 ## Features
 
