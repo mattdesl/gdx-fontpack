@@ -1,8 +1,10 @@
 # gdx-fontpack
 
-_Bitmap Font packer built on Gdx-Freetype extension (which expands on freetype2 library)_
+_Bitmap Font packing tool built on the gdx-FreeType extension_
 
 This project is in early stages. If you find a bug or want a new feature, you can open an issue.
+
+![Screenshot](http://i.imgur.com/ra8poG2.png)
 
 ## Features:
 
@@ -13,8 +15,10 @@ This project is in early stages. If you find a bug or want a new feature, you ca
 - Adjustable padding and texture-packer spacing
 - Export as AngelCodeFont XML or text file
 
-![Screenshot](http://i.imgur.com/ra8poG2.png)
 
+## Documentation:
+
+- [How To Use the GUI](https://github.com/mattdesl/gdx-fontpack/wiki/Using-the-GUI-Tool)
 
 ## TODO:
 

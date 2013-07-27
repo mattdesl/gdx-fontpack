@@ -32,6 +32,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -150,6 +151,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 	EditCharsDialog editChars;
 
 	FontItem lastInvalidFont;
+	
+	Color shadowColor = Color.BLACK;
 	
 	CardLayout outputCardLayout; 
 	JPanel outputCards;
@@ -578,7 +581,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			}
 		});		
 		
-//		FontItem item = new FontItem("Arial", "Arial.ttf");
+//		FontItem item = new FontItem("Arial", "testfonts/Arial.ttf");
 //		listModel.addElement(item);
 		
 		addFntBtn = new IconButton(this, "/data/add.png");
@@ -728,6 +731,8 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		});
 	}
 	
+	
+	
 	class IconButton extends JButton {
 		
 		Color btnBG_Active = new Color(0.85f, 0.85f, 0.85f);
@@ -737,14 +742,24 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		public boolean entered = false;
 		public boolean pressed = false;
 		private Window parent;
-		boolean hasText = false;
+		boolean hasContent = false;
+		Color colorFill = Color.BLACK;
 		
 		public IconButton(Window parent, String resourcePath) {
-			this(parent, null, resourcePath);
+			this(parent, null, resourcePath, null);
 		}
 		
 		public IconButton(Window parent, String text, String resourcePath) {
+			this(parent, text, resourcePath, null);
+		}
+		
+		public IconButton(Window parent, Color colorFill, String resourcePath) {
+			this(parent, null, resourcePath, colorFill);
+		}
+		
+		private IconButton(Window parent, String text, String resourcePath, Color colorFill) {
 			this.parent = parent;
+			this.colorFill = colorFill;
 			setText(text);
 			setIcon(new ImageIcon(FontPackGUI.class.getResource(resourcePath)));
 			setContentAreaFilled(false);
@@ -752,12 +767,17 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			
 			int w = ICON_SIZE;
 			setRequestFocusEnabled(false);
-			if (text==null) {
-				
-			} else {
-				hasText = true;
+			if (colorFill!=null) {
+				hasContent = true;
+				w = ICON_SIZE*2+5;
+				setHorizontalAlignment(RIGHT);
+//				setIconTextGap(5);
+			}
+			
+			if (text!=null) {
+				hasContent = true;
 				setHorizontalTextPosition(LEFT);
-				w = getPreferredSize().width;
+				w = Math.max(w, getPreferredSize().width);
 			}
 			
 			Dimension d = new Dimension(w, ICON_SIZE);
@@ -797,19 +817,31 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			if (!parent.isActive())
 				entered = pressed = false;
 			
+			int compWidth = getWidth();
+			int compHeight = getHeight();
+
+			int w = hasContent ? compWidth : ICON_SIZE;
+			int x = hasContent ? 0 : (compWidth/2 - ICON_SIZE/2);
+			
 			if (entered && isEnabled()) {
+				
 				g.setColor(pressed ? btnBG_Pressed : btnBG_Active);
-				g.setClip(0, 0, getWidth(), getHeight());
+				g.setClip(0, 0, compWidth, compHeight);
 				((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				
+				g.fillRoundRect(x, compHeight/2 - ICON_SIZE/2, w, ICON_SIZE, 10, 10);
 				
-				int w = hasText ? getWidth() : ICON_SIZE;
-				int x = hasText ? 0 : (getWidth()/2 - ICON_SIZE/2);
-				
-				g.fillRoundRect(x, getHeight()/2 - ICON_SIZE/2, w, ICON_SIZE, 10, 10);
 			}
 			if (pressed && isEnabled())
 				g.translate(1, 1);
+			
+			if (colorFill!=null) {
+				((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				int colorSize = 18;
+				g.setColor(colorFill);
+				g.fillRoundRect(x+5, compHeight/2 - colorSize/2, colorSize, colorSize, 10, 10);
+			}
+			
 			super.paintComponent(g);
 			if (pressed && isEnabled())
 				g.translate(1,  1);
@@ -875,7 +907,9 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		doc.defaultSettings.glowBlurIterations = (shadowEdit!=null) ? ((Number)shadowEdit.spinIterations.getValue()).intValue()  : 1;
 		
 		double alpha = (shadowEdit!=null) ? ((Number)shadowEdit.sliderSpinner.getValue()).doubleValue() : 0.75;
-		com.badlogic.gdx.graphics.Color c = new com.badlogic.gdx.graphics.Color(0, 0, 0, (float)alpha);
+		com.badlogic.gdx.graphics.Color c = new com.badlogic.gdx.graphics.Color(
+				shadowColor.getRed() / 255f, shadowColor.getGreen() / 255f, 
+				shadowColor.getBlue() / 255f, (float)alpha);
 		doc.defaultSettings.glowColor = c;
 		
 		doc.defaultSettings.paddingTop = ((Number)padTop.getValue()).intValue();
@@ -1161,6 +1195,7 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		JSpinner offX, offY, spinRadius, spinIterations;
 		JSpinner sliderSpinner;
 		
+		
 		public ShadowEditDialog(Frame parent) {
 			super(parent, false);
 			setTitle("Shadow Settings");
@@ -1234,15 +1269,32 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 			});
 			
 			
+			final IconButton colorButton = new IconButton(ShadowEditDialog.this, shadowColor, "/data/pencil.png");
+			colorButton.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed (ActionEvent arg0) {
+					Color ret = JColorChooser.showDialog(ShadowEditDialog.this, "Shadow Color", shadowColor);
+					if (ret!=null) { 
+						shadowColor = ret;
+						colorButton.colorFill = shadowColor;
+						colorButton.repaint();
+						updateOutput();
+					}
+				}
+			});
 
 			SwingTable sliderTable = new SwingTable();
 			sliderTable.left();
 			sliderTable.addCell(sliderSpinner).width(SPIN_WIDTH);
 			sliderTable.addCell(slider).expandX().fillX();
 			
+			root.addCell("Color:").right().padRight(HPAD);
+			root.addCell(colorButton).left();
+			root.row();
+			
 			root.addCell("Opacity:").right().padRight(HPAD);
 			root.addCell(sliderTable).expandX().fillX().left();
-			
 			root.row();
 			
 			JButton closeBtn = new JButton("Close");
