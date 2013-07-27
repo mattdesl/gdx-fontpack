@@ -1,6 +1,6 @@
 # gdx-fontpack
 
-_Unofficial font and GUI packing tools for LibGDX_
+_Bitmap Font packer built on Gdx-Freetype extension (which expands on freetype2 library)_
 
 ## Features:
 
@@ -12,3 +12,16 @@ _Unofficial font and GUI packing tools for LibGDX_
 - Export as AngelCodeFont XML or text file
 
 ![Screenshot](http://i.imgur.com/ra8poG2.png)
+
+
+## TODO:
+
+- Documentation:
+  - Using the GUI 
+  - Using the command line
+  - Building from source
+- Other effects like outline and gradient
+- Advanced settings:
+  - "Flip" parameter
+  - Supersampling
+- (eventually) Vector output
