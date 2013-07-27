@@ -2,6 +2,8 @@
 
 _Bitmap Font packer built on Gdx-Freetype extension (which expands on freetype2 library)_
 
+This project is in early stages. If you find a bug or want a new feature, you can open an issue.
+
 ## Features:
 
 - Supports TTF, OTF, and any other format supported by freetype2
