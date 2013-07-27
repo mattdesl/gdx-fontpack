@@ -6,10 +6,6 @@ This project is in early stages. If you find a bug or want a new feature, you ca
 
 ![Screenshot](http://i.imgur.com/ra8poG2.png)
 
-## Download
-
-[Latest](https://github.com/mattdesl/gdx-fontpack/releases/tag/v1.0)
-
 ## Features
 
 - Supports TTF, OTF, and any other format supported by freetype2
@@ -18,6 +14,11 @@ This project is in early stages. If you find a bug or want a new feature, you ca
 - Drop shadow / outer glow effects
 - Adjustable padding and texture-packer spacing
 - Export as AngelCodeFont XML or text file
+
+## Download
+
+Download the latest standalone jar here:  
+[version 1.0](https://github.com/mattdesl/gdx-fontpack/releases/tag/v1.0)
 
 ## Documentation
 
