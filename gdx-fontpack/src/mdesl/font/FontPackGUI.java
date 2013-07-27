@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -1496,10 +1498,31 @@ public class FontPackGUI extends JFrame implements FontPackTool.ProgressListener
 		public String showEdit(String curChars) {
 			charField.setText(curChars);
 			setVisible(true);
-			if (success) 
-				return trimDuplicates(charField.getText());
+			if (success) {
+				return trimDuplicates(escapeUnicode(charField.getText()));
+			}
 			return null;
 		}
+		
+		/**
+		 * Escapes all of the 6 character sequences starting with \ u (minux the space)
+		 * and ending in 4 hex digits which exist in 'input', replacing those sequences
+		 * with a single unicode code point.
+		 * 
+		 * @param input The string to check for non-escaped unicode sequences
+		 * @return The escaped string.
+		 */
+		public String escapeUnicode(String input) {
+			//Have to have \\\\ to express it as \\ in the string, so the regex will look for a \
+			Pattern regex = Pattern.compile("\\\\[uU]([0-9a-fA-F]{4})");
+			String ret = input;
+			Matcher regmatcher = regex.matcher(ret);
+			while(regmatcher.find()) {
+				ret = ret.replaceAll("\\" + regmatcher.group(0), Character.toString((char)Integer.parseInt(regmatcher.group(1),16)));
+			}
+			return ret;
+		}
+
 	}
 	
 	class TestPanel extends SwingTable {
