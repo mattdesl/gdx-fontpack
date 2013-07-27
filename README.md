@@ -6,7 +6,14 @@ This project is in early stages. If you find a bug or want a new feature, you ca
 
 ![Screenshot](http://i.imgur.com/ra8poG2.png)
 
-## Features:
+## Download
+
+[test](https://github.com/mattdesl/gdx-fontpack/releases/tag/v1.0)
+[test2](releases/tag/v1.0)
+[test3](wiki/Using-the-GUI-Tool)
+
+
+## Features
 
 - Supports TTF, OTF, and any other format supported by freetype2
 - Packs multiple fonts and sizes into a single atlas
@@ -15,12 +22,11 @@ This project is in early stages. If you find a bug or want a new feature, you ca
 - Adjustable padding and texture-packer spacing
 - Export as AngelCodeFont XML or text file
 
-
-## Documentation:
+## Documentation
 
 - [How To Use the GUI](https://github.com/mattdesl/gdx-fontpack/wiki/Using-the-GUI-Tool)
 
-## TODO:
+## TODO
 
 - Documentation:
   - Using the GUI 
